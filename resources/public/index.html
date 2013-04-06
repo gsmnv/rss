@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RSS</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <script type="text/javascript" src="js/lib/jquery.js"></script>
+    <script type="text/javascript" src="js/lib/bootstrap.js"></script>
+    <script type="text/javascript" src="js/lib/handlebars.js"></script>
+    <script type="text/javascript" src="js/lib/ember.js"></script>
+    <script type="text/javascript" src="js/lib/ember-data.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/highcharts-more.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+    <script type="text/javascript" src="js/app.rss.js"></script>
+    <script type="text/javascript" src="js/app.weather.js"></script>
+  </head>
+  <body>
+
+    <script type="text/x-handlebars">
+    <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+        <div class="container">
+          <button data-target=".nav-collapse" data-toggle="collapse" class="btn btn-navbar" type="button">
+          </button>
+          <a href="#" class="brand">RSS</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li>
+                <a href="#/feeds">Home</a>
+              </li>
+              <li>
+                <a href="#/weather">Weather</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      {{outlet}}
+    </div>
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="weather">
+    {{#with content}}
+      Current tempertuare in {{current.name}}: {{current.main.temp}}°C
+      <div id="plot"></div>
+    {{/with}}
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="feeds">
+    <div class="row">
+      <div class="span2">
+        <button class="btn btn-primary" data-loading-text="Updating..."
+          {{action updateAll target=view}}>
+          Update all
+        </button>
+      </div>
+      <div class="span7">
+        <form class="form-inline">
+          {{view Ember.TextField valueBinding="url"}}
+          <button class="btn" type="submit" {{action create url target=controller}}>
+            Add feed
+          </button>
+        </form>
+      </div>
+    </div>
+    {{#if view.anyUnread}}
+      <div class="accordion" id="accordion2">
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+              All unread entries
+            </a>
+          </div>
+          <div id="collapseTwo" class="accordion-body collapse">
+            <div class="accordion-inner">
+              <table class="table">
+                {{#each controller.allUnread}}
+                  {{render "partial-entry" this}}
+                {{/each}}
+              </table>
+              <button class="btn" {{action readAll target=controller}}>
+                Read all
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Feed</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each content}}
+          {{render "partial-feed" this}}
+        {{/each}}
+      </tbody>
+    </table>
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="partial-feed">
+    {{#if id}}
+      <tr>
+        <td>
+          {{#if view.unread}}
+            <span class="label label-info">
+              {{unreadCount}} unread
+            </span>
+          {{/if}}
+          {{#linkTo feed this}}{{title}}{{/linkTo}}
+        </td>
+        <td>
+          {{description}}
+        </td>
+        <td>
+          <div class="btn-group">
+            <button data-toggle="dropdown" class="btn dropdown-toggle"><i class="icon-wrench"></i></button>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="delete-feed" {{action delete this target=controller}}>Delete</a>
+              </li>
+              <li>
+                <a class="update-feed" {{action update this target=controller}}>Update</a>
+              </li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+      {{else}}
+      <tr>
+        <td></td>
+        <td>
+          <img src="img/loading.gif" alt="Loading...">
+        </td>
+        <td></td>
+      </tr>
+          {{/if}}
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="partial-entry">
+    {{#with content}}
+    <td>
+      {{#linkTo entry this}}{{title}}{{/linkTo}}
+    </td>
+    {{/with}}
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="feed">
+    <div class="row">
+      <div class="span2">
+        <button class="btn btn-primary" {{action readAll target=view}}>
+          Read all
+        </button>
+      </div>
+      <div class="span9">
+        <h2>{{title}}</h2>
+      </div>
+    </div>
+    <table class="table">
+      {{#each content.sortedEntries}}
+        {{render "partial-entry" this}}
+      {{/each}}
+    </table>
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="entry">
+    <h3>{{title}}</h3>
+    <p>{{{description}}}</p>
+    <a {{bindAttr href=url}} target="_blank">Source</a>
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="create-feed">
+    </script>
+
+  </body>
+</html>
